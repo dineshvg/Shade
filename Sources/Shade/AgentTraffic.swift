@@ -183,7 +183,7 @@ final class AgentTraffic: ObservableObject {
 
     // MARK: - Recording
 
-    fileprivate func record(_ exchange: TrafficExchange) {
+    func record(_ exchange: TrafficExchange) {
         exchanges.append(exchange)
         let limit = exchange.isConnection ? Self.connectionLimit : Self.limit
         let sameKind = exchanges.indices.filter { exchanges[$0].isConnection == exchange.isConnection }
@@ -208,7 +208,7 @@ final class AgentTraffic: ObservableObject {
         return UUID(uuidString: String(credentials.dropFirst(5)))
     }
 
-    fileprivate func update(_ id: UUID?, _ change: (inout TrafficExchange) -> Void) {
+    func update(_ id: UUID?, _ change: (inout TrafficExchange) -> Void) {
         guard let id, let index = exchanges.firstIndex(where: { $0.id == id }) else { return }
         change(&exchanges[index])
     }
@@ -221,7 +221,7 @@ final class AgentTraffic: ObservableObject {
 // MARK: - HTTP parsing
 
 /// A complete HTTP/1.1 request read from an agent.
-private struct HTTPRequest {
+struct HTTPRequest {
     let method: String
     let target: String
     let headers: [(name: String, value: String)]

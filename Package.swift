@@ -13,6 +13,12 @@ let package = Package(
             name: "Shade",
             dependencies: [.product(name: "SwiftTerm", package: "SwiftTerm")],
             path: "Sources/Shade"
-        )
+        ),
+        // `swift test` — unit tests plus stability diagnostics (see Tests/ShadeTests/README.md).
+        .testTarget(
+            name: "ShadeTests",
+            dependencies: ["Shade"],
+            path: "Tests/ShadeTests"
+        ),
     ]
 )
