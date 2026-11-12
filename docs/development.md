@@ -50,9 +50,16 @@ Issues and pull requests are welcome.
 
 Needs an Apple Developer Program membership. Once: create a *Developer ID Application* certificate (Xcode ›
 Settings › Accounts › Manage Certificates) and store notarization credentials with
-`xcrun notarytool store-credentials shade-notary --apple-id <apple-id> --team-id <TEAMID>`. Then:
+`xcrun notarytool store-credentials shade-notary --apple-id <apple-id> --team-id <TEAMID>`.
+
+The version lives in one place, the [`VERSION`](../VERSION) file. `bundle.sh`, `install.sh` and `release.sh` read it,
+so the About window, Finder, the DMG name and the tag all agree. To release:
+
+1. Bump `VERSION` in a pull request and merge it.
+2. Tag the merge and build the DMG:
 
 ```bash
-SIGN_IDENTITY="Developer ID Application: Your Name (TEAMID)" ./scripts/release.sh 1.0.0
+git tag -a v1.0.0 -m "Shade 1.0.0" && git push origin v1.0.0
+SIGN_IDENTITY="Developer ID Application: Your Name (TEAMID)" ./scripts/release.sh
 gh release create v1.0.0 build/Shade-1.0.0.dmg --title "Shade 1.0.0" --generate-notes
 ```

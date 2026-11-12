@@ -8,11 +8,16 @@
 #      (use an app-specific password from account.apple.com)
 #
 # Usage:
-#   SIGN_IDENTITY="Developer ID Application: Your Name (TEAMID)" ./scripts/release.sh 1.0.0
+#   SIGN_IDENTITY="Developer ID Application: Your Name (TEAMID)" ./scripts/release.sh
+# The version comes from the VERSION file. Passing one (./scripts/release.sh 1.0.0) only checks that it matches.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-VERSION="${1:?Usage: ./scripts/release.sh <version>, for example 1.0.0}"
+VERSION="$(tr -d '[:space:]' < VERSION)"
+if [[ -n "${1:-}" && "$1" != "$VERSION" ]]; then
+    echo "The VERSION file says $VERSION, not $1. Update VERSION first so the app, the DMG and the tag agree."
+    exit 1
+fi
 : "${SIGN_IDENTITY:?Set SIGN_IDENTITY to your \"Developer ID Application: ...\" certificate name}"
 NOTARY_PROFILE="${NOTARY_PROFILE:-shade-notary}"
 APP="build/Shade.app"

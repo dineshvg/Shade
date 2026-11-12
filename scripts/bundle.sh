@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # Builds Shade.app (menu-bar only) into ./build. Ad-hoc signed for local use; release.sh sets:
-#   VERSION=1.2.3       version shown in Finder and the About window (default 0.1.0)
+#   VERSION=1.2.3       version shown in Finder and the About window (default: the VERSION file)
 #   UNIVERSAL=1         build for Apple silicon and Intel
 #   SIGN_IDENTITY=...   "Developer ID Application: ..." certificate: signs with the hardened runtime
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-VERSION="${VERSION:-0.1.0}"
+VERSION="${VERSION:-$(tr -d '[:space:]' < VERSION)}"
 BUILD_FLAGS=(-c release)
 if [[ "${UNIVERSAL:-0}" == 1 ]]; then
     BUILD_FLAGS+=(--arch arm64 --arch x86_64)
