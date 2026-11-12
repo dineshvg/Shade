@@ -58,6 +58,8 @@ final class AgentTraffic: ObservableObject {
     static let builtInAgentHosts = [
         "anthropic.com", "claude.ai", "claude.com", "openai.com", "chatgpt.com",
         "githubcopilot.com", "api.github.com", "generativelanguage.googleapis.com", "cloudcode-pa.googleapis.com",
+        // Antigravity CLI (agy)
+        "daily-cloudcode-pa.googleapis.com",
     ]
 
     /// Who opened a proxy connection, found from the calling process.

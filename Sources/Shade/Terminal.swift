@@ -113,6 +113,26 @@ final class TerminalSessions: ObservableObject {
         return AgentTraffic.Caller(cardID: card.cardID, process: SocketOwner.name(of: found.pid), restricted: card.isStrict)
     }
 
+    enum RecordingStart {
+        case started
+        /// A program is running in the card, so the shell can't be changed from outside.
+        case busy(String)
+        case unavailable(String)
+    }
+
+    /// Adds Agent Traffic to a card whose shell is already running. Programs started in it afterwards are
+    /// recorded; one that's already running keeps the environment it started with.
+    func startRecording(_ cardID: UUID) -> RecordingStart {
+        // The shell hasn't started yet: it will, with recording, once the card is marked as recorded.
+        guard let session = sessions[cardID] else { return .started }
+        if let program = runningProgram(in: cardID) { return .busy(program) }
+        guard let relay = agentTraffic.environment(for: cardID) else {
+            return .unavailable(agentTraffic.listenerError ?? "Agent Traffic couldn't start.")
+        }
+        session.record(with: relay)
+        return .started
+    }
+
     func close(_ cardID: UUID) {
         sessions.removeValue(forKey: cardID)?.close()
         repoRefreshes.removeValue(forKey: cardID)?.cancel()
@@ -286,6 +306,25 @@ private final class TerminalSession: NSObject, LocalProcessTerminalViewDelegate 
             // The shell reads it from the terminal once its startup files have run.
             view.send(data: ArraySlice(Array((initialCommand + "\n").utf8)))
         }
+    }
+
+    /// A running shell's environment can't be changed from outside, so the variables are typed into it at the
+    /// prompt. Whatever is typed there is cleared first; programs started afterwards inherit them.
+    func record(with relay: [String: String]) {
+        var environment = relay
+        if sandbox?.level == .strict {
+            // Strict only lets agent services through, so skip Claude Code's others (telemetry, update checks).
+            environment["CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC"] = "1"
+        }
+        let shell = ((ProcessInfo.processInfo.environment["SHELL"] ?? "/bin/zsh") as NSString).lastPathComponent
+        let assignments = environment.sorted { $0.key < $1.key }.map { entry -> String in
+            let value = "'" + entry.value.replacingOccurrences(of: "'", with: "'\\''") + "'"
+            return shell == "fish" ? "set -gx \(entry.key) \(value)" : "\(entry.key)=\(value)"
+        }
+        let command = shell == "fish" ? assignments.joined(separator: "; ") : "export " + assignments.joined(separator: " ")
+        let notice = "printf '\\033[2mShade: network calls of programs started from now on are recorded.\\033[0m\\n'"
+        // Ctrl-U and Ctrl-K clear a half-typed command, so it doesn't end up in front of the export.
+        view.send(data: ArraySlice([0x15, 0x0b] + Array((command + "; " + notice + "\r").utf8)))
     }
 
     func apply(_ theme: Theme, backgroundOpacity: Double) {

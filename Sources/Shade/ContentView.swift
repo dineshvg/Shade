@@ -16,6 +16,8 @@ struct ContentView: View {
     @State private var showSettings = false
     @State private var showAbout = false
     @State private var pendingRemoval: PendingRemoval?
+    /// Why recording couldn't be added to a running card.
+    @State private var recordingNotice: String?
     /// Status and files of the repository shown in the sidebar and file cards.
     @StateObject private var repoWatcher = RepoWatcher()
     /// Repository root while Quick Open (⌘P) is showing.
@@ -254,6 +256,9 @@ struct ContentView: View {
             } else if recordTraffic {
                 recordedBar
                 Divider().opacity(0.4)
+            } else {
+                unrecordedBar(cardID)
+                Divider().opacity(0.4)
             }
             if let repo {
                 repoBar(repo)
@@ -280,6 +285,8 @@ struct ContentView: View {
             Spacer()
             if sandbox.recordTraffic {
                 agentTrafficButton
+            } else {
+                startRecordingButton(settings.selectedCardID)
             }
             Button { showBlockedActions() } label: { Label("Blocked Actions", systemImage: "list.bullet.rectangle") }
                 .help("Open a terminal card that lists what the sandbox denies, live")
@@ -301,6 +308,39 @@ struct ContentView: View {
         .font(.callout)
         .padding(.horizontal, 12)
         .padding(.vertical, 5)
+    }
+
+    /// Shown above a terminal card that isn't recorded, so recording can be added later.
+    private func unrecordedBar(_ cardID: UUID) -> some View {
+        HStack(spacing: 10) {
+            Label("Not recorded", systemImage: "circle.dashed")
+                .foregroundStyle(.secondary)
+            Spacer()
+            startRecordingButton(cardID)
+        }
+        .buttonStyle(.borderless)
+        .font(.callout)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 5)
+    }
+
+    private func startRecordingButton(_ cardID: UUID) -> some View {
+        Button { startRecording(cardID) } label: { Label("Record Agent Traffic", systemImage: "record.circle") }
+            .help("Record the network calls of programs you start in this card from now on. "
+                + "A program that's already running, such as an agent, has to be restarted.")
+    }
+
+    /// Adds recording to a card that was opened without it.
+    private func startRecording(_ cardID: UUID) {
+        switch terminals.startRecording(cardID) {
+        case .started:
+            settings.startRecording(cardID)
+        case .busy(let program):
+            recordingNotice = "“\(program)” is running in this card. A running program can't be changed, so quit it "
+                + "and click Record Agent Traffic again; then start it again and its calls are recorded."
+        case .unavailable(let reason):
+            recordingNotice = reason
+        }
     }
 
     private var recordedLabel: some View {
@@ -524,6 +564,15 @@ struct ContentView: View {
         } message: { removal in
             Text(removal.message)
         }
+        .alert(
+            "Can't record yet",
+            isPresented: Binding(get: { recordingNotice != nil }, set: { if !$0 { recordingNotice = nil } }),
+            presenting: recordingNotice
+        ) { _ in
+            Button("OK", role: .cancel) {}
+        } message: { notice in
+            Text(notice)
+        }
     }
 
     private func cardChip(_ card: Settings.Card, index: Int) -> some View {
@@ -595,6 +644,9 @@ struct ContentView: View {
         .background(Capsule().fill(Color.primary.opacity(isSelected ? 0.16 : 0.06)))
         .contextMenu {
             Button("Rename…") { startRename(card, index: index) }
+            if card.kind == .terminal && !card.recordsTraffic {
+                Button("Record Agent Traffic") { startRecording(card.id) }
+            }
             if card.name != nil {
                 Button("Use Automatic Title") { settings.rename(card.id, to: "") }
             }

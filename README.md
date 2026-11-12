@@ -107,8 +107,11 @@ deprecated but still ships and which tools like Chrome and coding agents rely on
 guarantee.
 
 ### See what agents send
-Turn on **Record Agent Traffic** in the 🛡 menu before opening a terminal card, sandboxed or not. What programs in
-that card send over the network shows up in an **Agent Traffic** card (the button in the card's bar, or **Agent
+Turn on **Record Agent Traffic** in the 🛡 menu before opening a terminal card, sandboxed or not, or add it to a
+card that's already open with **Record Agent Traffic** in the bar above the terminal (or in the tab's right-click
+menu). Recording starts with the next program you run there: one that's already running, such as an agent, has to be
+restarted, because a running program's settings can't be changed from outside. What programs in that card send over
+the network shows up in an **Agent Traffic** card (the button in the card's bar, or **Agent
 Traffic** in the menu bar icon):
 - a list of calls with model or host, the program that made them, status, tokens or bytes and duration, filterable
   by card. **Agents** shows calls to model and agent services; **All** shows every connection;
@@ -129,7 +132,9 @@ How it works: the card's programs are pointed at a small relay inside Shade on `
 - **Strict + Record Agent Traffic** is the auditable setup: the sandbox blocks every connection except to your
   Mac, so programs can only go out through Shade, and Shade lets them reach only agent services. Every call is
   listed, and blocked ones show as **BLOCKED**. Agent services are Anthropic, Claude, OpenAI, ChatGPT, GitHub
-  Copilot (`githubcopilot.com`, `api.github.com`) and Gemini; add your own in ⚙︎ › **Agent Traffic**. (In this
+  Copilot (`githubcopilot.com`, `api.github.com`), Gemini and Antigravity CLI (`agy`); add your own in ⚙︎ ›
+  **Agent Traffic**. There is no official list of every host an agent uses, so choose **All** in Agent Traffic to see
+  the real ones. (In this
   mode Shade also turns off Claude Code's non-essential traffic such as telemetry, which would be blocked anyway.)
 - Tools that ignore the proxy settings connect directly and aren't recorded; in a Strict card they can't connect
   at all.
