@@ -247,6 +247,12 @@ final class Settings: ObservableObject {
         set { cards[selectedIndex].text = newValue }
     }
 
+    /// Marks a terminal card as recorded, after its running shell was set up for it.
+    func startRecording(_ cardID: UUID) {
+        guard let index = cards.firstIndex(where: { $0.id == cardID }), cards[index].kind == .terminal else { return }
+        cards[index].recordTraffic = true
+    }
+
     /// New cards join the current card's group, like a tab opened from a grouped tab in Chrome.
     @discardableResult
     func addCard(kind: Card.Kind = .notes, name: String? = nil, sandbox: SandboxConfig? = nil) -> UUID {
