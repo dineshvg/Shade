@@ -31,7 +31,12 @@ Press it again and it's gone. The app you're in (your meeting, your IDE) stays i
 ## Install
 
 **Download:** grab the latest `.dmg` from [Releases](https://github.com/dineshvg/Shade/releases) and drag Shade to
-Applications. Signed and notarized; Apple silicon and Intel, macOS 15+.
+Applications. Apple silicon and Intel, macOS 15+.
+
+> [!NOTE]
+> Releases aren't notarized by Apple yet, so macOS blocks the first launch. Open Shade once, then go to
+> **System Settings › Privacy & Security** and click **Open Anyway**. Or, in Terminal:
+> `xattr -dr com.apple.quarantine /Applications/Shade.app`
 
 **Build from source** (Xcode 26+ / Swift 6.2):
 
